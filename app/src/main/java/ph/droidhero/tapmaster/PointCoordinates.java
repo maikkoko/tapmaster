@@ -6,28 +6,28 @@ package ph.droidhero.tapmaster;
 
 public class PointCoordinates {
 
-    private int xCoord;
-    private int yCoord;
+    private float xCoord;
+    private float yCoord;
 
-    public PointCoordinates(int xCoord, int yCoord) {
+    public PointCoordinates(Float xCoord, Float yCoord) {
         this.xCoord = xCoord;
         this.yCoord = yCoord;
     }
 
 
-    public int getX() {
+    public float getxCoord() {
         return xCoord;
     }
 
-    public void setX(int xCoord) {
+    public void setxCoord(Float xCoord) {
         this.xCoord = xCoord;
     }
 
-    public int getY() {
-        return yCoord;
+    public void setyCoord(Float yCoord) {
+        this.yCoord = yCoord;
     }
 
-    public void setY(int yCoord) {
-        this.yCoord = yCoord;
+    public float getyCoord() {
+        return yCoord;
     }
 }

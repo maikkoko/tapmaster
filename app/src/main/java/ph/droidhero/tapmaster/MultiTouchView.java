@@ -11,6 +11,9 @@ import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by droidhero on 29/11/2017.
  */
@@ -27,6 +30,8 @@ class MultitouchView extends View {
 
     private Paint textPaint;
 
+    private ArrayList<PointCoordinates> pointCoordinates;
+
     private Boolean isViewBusy;
 
     public MultitouchView(Context context, AttributeSet attrs) {
@@ -35,7 +40,7 @@ class MultitouchView extends View {
     }
 
     private void initView() {
-        mActivePointers = new SparseArray<PointF>();
+        mActivePointers = new SparseArray<>();
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
         // set painter color to a color you like
@@ -45,65 +50,77 @@ class MultitouchView extends View {
         textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         textPaint.setTextSize(20);
 
+        pointCoordinates = new ArrayList<>();
         isViewBusy = false;
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-        int pointerCount = event.getPointerCount();
+        if (!isViewBusy) {
+            int pointerCount = event.getPointerCount();
 
+            if (pointerCount == 5) {
+                Log.d("POINTER COUNT", "onTouchEvent: " + String.valueOf(pointerCount));
 
-        if (pointerCount == 5) {
-            Log.d("POINTER COUNT", "onTouchEvent: " + String.valueOf(pointerCount));
-
-            for (int ctr = 0; ctr < 5; ctr++) {
-                Log.d("POINTER COORDS", String.valueOf(event.getX(ctr)) + "," + String.valueOf(event.getY(ctr)));
-            }
-        } else {
-            Log.d("POINTER COUNT", "Again");
-        }
-
-        // get pointer index from the event object
-        int pointerIndex = event.getActionIndex();
-
-        // get pointer ID
-        int pointerId = event.getPointerId(pointerIndex);
-
-        // get masked (not specific to a pointer) action
-        int maskedAction = event.getActionMasked();
-
-        switch (maskedAction) {
-
-            case MotionEvent.ACTION_DOWN:
-            case MotionEvent.ACTION_POINTER_DOWN: {
-                // We have a new pointer. Lets add it to the list of pointers
-
-                PointF f = new PointF();
-                f.x = event.getX(pointerIndex);
-                f.y = event.getY(pointerIndex);
-                mActivePointers.put(pointerId, f);
-                break;
-            }
-            case MotionEvent.ACTION_MOVE: { // a pointer was moved
-                for (int size = event.getPointerCount(), i = 0; i < size; i++) {
-                    PointF point = mActivePointers.get(event.getPointerId(i));
-                    if (point != null) {
-                        point.x = event.getX(i);
-                        point.y = event.getY(i);
-                    }
+                for (int ctr = 0; ctr < 5; ctr++) {
+                    pointCoordinates.add(new PointCoordinates(event.getX(ctr), event.getY(ctr)));
                 }
-                break;
+
+                isViewBusy = true;
+
+                TapIdentity tap = new TapIdentity(pointCoordinates);
+
+                if (tap.isValid()) {
+                    Log.d("Sides", String.valueOf(tap.getSides()));
+                    Log.d("Identity", String.valueOf(tap.getAreas()));
+                }
+
+            } else {
+                Log.d("POINTER COUNT", "Again");
             }
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_POINTER_UP:
-            case MotionEvent.ACTION_CANCEL: {
-                mActivePointers.remove(pointerId);
-                break;
+
+            // get pointer index from the event object
+            int pointerIndex = event.getActionIndex();
+
+            // get pointer ID
+            int pointerId = event.getPointerId(pointerIndex);
+
+            // get masked (not specific to a pointer) action
+            int maskedAction = event.getActionMasked();
+
+            switch (maskedAction) {
+
+                case MotionEvent.ACTION_DOWN:
+                case MotionEvent.ACTION_POINTER_DOWN: {
+                    // We have a new pointer. Lets add it to the list of pointers
+
+                    PointF f = new PointF();
+                    f.x = event.getX(pointerIndex);
+                    f.y = event.getY(pointerIndex);
+                    mActivePointers.put(pointerId, f);
+                    break;
+                }
+                case MotionEvent.ACTION_MOVE: { // a pointer was moved
+                    for (int size = event.getPointerCount(), i = 0; i < size; i++) {
+                        PointF point = mActivePointers.get(event.getPointerId(i));
+                        if (point != null) {
+                            point.x = event.getX(i);
+                            point.y = event.getY(i);
+                        }
+                    }
+                    break;
+                }
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_POINTER_UP:
+                case MotionEvent.ACTION_CANCEL: {
+                    mActivePointers.remove(pointerId);
+                    break;
+                }
             }
         }
-        invalidate();
 
+        invalidate();
         return true;
     }
 
